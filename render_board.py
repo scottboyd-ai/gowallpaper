@@ -1,18 +1,18 @@
-import cairosvg
 from PIL import Image, ImageDraw
 import ctypes
 
 
-def load_stone_image(svg_path, output_path, size):
-    # Convert SVG to PNG with the given size.
-    cairosvg.svg2png(url=svg_path, write_to=output_path, output_width=size, output_height=size)
-    return Image.open(output_path).convert("RGBA")
+def load_stone_image(png_path, size=None):
+    img = Image.open(png_path).convert("RGBA")
+    if size:
+        # Resize the stone image if needed.
+        img = img.resize((size, size), Image.Resampling.LANCZOS)
+    return img
 
 
 stone_size = 60
-black_stone = load_stone_image("black.svg", "black_stone.png", stone_size)
-white_stone = load_stone_image("white.svg", "white_stone.png", stone_size)
-
+black_stone = load_stone_image("black_stone.png", stone_size)
+white_stone = load_stone_image("white_stone.png", stone_size)
 
 def get_screen_resolution():
     user32 = ctypes.windll.user32
