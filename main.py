@@ -1,32 +1,45 @@
 import time
 
 from GoGame import GoGame
-from gtp_commands import request_move, gtp_to_index
+from gtp_commands import request_move, gtp_to_index, send_gtp_command
 from render_board import render_board_on_canvas
 from save_image import save_board_image
 from set_wallpaper import set_wallpaper
-from start_engine import kata_engine
+from start_engine import start_engine
+
+# Example paths (adjust to your setup):
+engine_path = r'C:\Workspace\gowallpaper\katago\katago.exe'
+model_path = r'C:\Workspace\gowallpaper\katago\b18c384nbt-humanv0.bin.gz'
+config_path = r'C:\Workspace\gowallpaper\katago\gtp_human5k_example.cfg'
 
 
 def main_game_loop():
     game = GoGame()
     # Assume kata_engine is black, leela_engine is white.
-    engines = {'B': kata_engine, 'W': kata_engine}
+
+    black_engine = start_engine(engine_path, model_path, config_path)
+    white_engine = start_engine(engine_path, model_path, config_path)
+
+    engines = {'B': black_engine, 'W': white_engine}
+
+    for engine in engines.values():
+        send_gtp_command(engine, "boardsize 19")
+        send_gtp_command(engine, "clear_board")
+        send_gtp_command(engine, "komi 7.5")
 
     while True:
         current_engine = engines[game.current_player]
         # Request move from current engine
-        gtp_move = request_move(current_engine, game)
+        gtp_move = request_move(current_engine, game.current_player)
+        move_str = gtp_move.lstrip("= ").strip()  # e.g. "Q16"
         move = gtp_to_index(gtp_move, game.board_size)
 
         # For simplicity, assume 'pass' means end of game.
-        if move == 'pass':
+        if move_str.lower() == 'pass':
             print("Game ended with a pass.")
             break
-        if move == 'resign':
-            resigner = 'B'
-            if game.current_player == 'B':
-                resigner = 'W'
+        if move_str.lower() == 'resign':
+            resigner = 'B' if game.current_player == 'W' else 'W'
             print(f"Game ended, {resigner}+R")
             break
 
@@ -36,16 +49,16 @@ def main_game_loop():
             print(f"Invalid move: {e}")
             break
 
+        # Update both engines with the move that was played.
+        # The move was played by the player opposite of game.current_player (since apply_move toggles it).
+        played_color = 'B' if game.current_player == 'W' else 'W'
+        for engine in engines.values():
+            send_gtp_command(engine, f"play {played_color} {move_str}")
+
         # Render board, save image, update wallpaper
         img = render_board_on_canvas(game)
         image_path = save_board_image(img)
         set_wallpaper(image_path)
-
-        # Optional: delay between moves
-        # time.sleep(2)
-
-        # # Optionally print board to console for debugging
-        # game.display_board()
 
 
 def main_loop():

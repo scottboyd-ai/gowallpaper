@@ -50,10 +50,10 @@ def send_gtp_command(engine, command, timeout=10):
 
 
 # Example: Request a move from an engine (you’ll need to handle proper GTP command formatting)
-def request_move(engine, game):
+def request_move(engine, current_player):
     # Construct a command like "genmove B" or "genmove W"
     # Here, board_state could be used to update engine's internal representation via 'loadsgf' or similar.
-    response = send_gtp_command(engine, f"genmove {game.current_player}")
+    response = send_gtp_command(engine, f"genmove {current_player}")
     # Parse response; this example assumes the engine returns a coordinate like "D4"
     move = response[-1].strip()
     return move
