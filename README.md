@@ -10,3 +10,5 @@ Make sure you have the engine, model, and config files.
 
 Once downloaded, replace the path to these in `start_engine.py`.
 Install the requirements in `requirements.txt`, then run `main.py`!
+
+The folder gtp_logs will be created. Clear it out occasionally if you don't want the logs piling up.

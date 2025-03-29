@@ -3,6 +3,7 @@ import time
 from GoGame import GoGame
 from gtp_commands import request_move, gtp_to_index, send_gtp_command
 from render_board import render_board_on_canvas
+from run_analysis import run_analysis
 from save_image import save_board_image
 from set_wallpaper import set_wallpaper
 from start_engine import start_engine
@@ -59,6 +60,18 @@ def main_game_loop():
         img = render_board_on_canvas(game)
         image_path = save_board_image(img)
         set_wallpaper(image_path)
+
+    # At game end:
+    ownership_grid = run_analysis(game.moves, game.board_size, komi=7.5)
+
+    # Optionally, get the final score from one of the GTP engines.
+    score_response = send_gtp_command(black_engine, "final_score")
+    score = score_response[-1].lstrip("= ").strip()
+    print("Final Score:", score)
+
+    final_img = render_board_on_canvas(game, ownership_grid=ownership_grid)
+    final_image_path = save_board_image(final_img, filename="final_board.png")
+    set_wallpaper(final_image_path)
 
 
 def main_loop():
